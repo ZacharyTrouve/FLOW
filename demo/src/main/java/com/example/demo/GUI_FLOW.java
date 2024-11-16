@@ -31,7 +31,7 @@ public class GUI_FLOW extends Application {
         Canvas canvas = new Canvas(tx, ty);
         root.setCenter(canvas);
         GraphicsContext gc = canvas.getGraphicsContext2D();
-        Manager.init(gc);
+        Manager.init(gc, join(basedir, "data", "components"));
 
 
         canvas.setOnMouseReleased(Manager::onMouseReleased);
@@ -44,13 +44,13 @@ public class GUI_FLOW extends Application {
         stage.show();
 
         //runWillTerminate(pythonCommand + " txt_class_converter.py\n");
-        Manager.components.add(new Component("origin", 30, 30));
-        Manager.components.add(new Component("pit", 200, 30));
-        Manager.components.add(new Component("pipeNS", 300, 80));
-        Manager.components.add(new Component("pipeEW", 400, 180));
-        Manager.components.add(new Component("gatevalve", 500, 400));
-        Manager.components.add(new Component("pressurereliefvalve", 700, 200));
-        Manager.components.add(new Component("ballvalve", 700, 400));
+        Manager.components.add(new Component("origin", 30, 30, 1, 2));
+        Manager.components.add(new Component("pit", 200, 30, 1, 2));
+        Manager.components.add(new Component("pipeNS", 300, 80, 1, 2));
+        Manager.components.add(new Component("pipeEW", 400, 180, 1, 2));
+        Manager.components.add(new Component("gatevalve", 500, 400, 1, 2));
+        Manager.components.add(new Component("pressurereliefvalve", 700, 200, 1, 2));
+        Manager.components.add(new Component("ballvalve", 700, 400, 1, 2));
         for (Component comp : Manager.components) comp.place();
     }
     public void warning(String input){
