@@ -49,6 +49,8 @@ public class GUI_FLOW extends Application {
         Manager.components.add(new Component("pipeNS", 300, 80));
         Manager.components.add(new Component("pipeEW", 400, 180));
         Manager.components.add(new Component("gatevalve", 500, 400));
+        Manager.components.add(new Component("pressurereliefvalve", 700, 200));
+        Manager.components.add(new Component("ballvalve", 700, 400));
         for (Component comp : Manager.components) comp.place();
     }
     public void warning(String input){
