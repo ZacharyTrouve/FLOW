@@ -50,6 +50,7 @@ public class Edge {
     }
 
     public static void tryAddEdgeFromCur() {
+        if (Manager.cur_mouseX > GUI_FLOW.cx || Manager.cur_mouseY > GUI_FLOW.cy || Manager.cur_mouseX < 0 || Manager.cur_mouseY < 0) return;//out of bounds
         double tiebreakerX = Manager.modW(Manager.cur_mouseX - Manager.offsetX) / IMAGE_WIDTH,
                tiebreakerY = Manager.modW(Manager.cur_mouseY - Manager.offsetY) / IMAGE_WIDTH;
         if ((tiebreakerX > 1 - Manager.edge_perc || tiebreakerX < Manager.edge_perc) && (tiebreakerY > 1 - Manager.edge_perc || tiebreakerY < Manager.edge_perc))

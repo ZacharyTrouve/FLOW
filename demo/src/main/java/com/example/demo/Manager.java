@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -48,12 +49,29 @@ public class Manager {
             AtomicInteger i = new AtomicInteger();
             reader.lines().forEach(str -> {
                 String[] split = str.split(",");
-                Component temp = new Component(split[0],offsetx + 80 * (i.get() % COMP_RANGE), GUI_FLOW.cy + offsety + 80 * (i.get() / COMP_RANGE),Integer.parseInt(split[1]), Integer.parseInt(split[2]));
+                System.out.println(Arrays.toString(split));
+                String[] param = new String[(split.length - 3) / 3];
+                double[] mins = new double[(split.length - 3) / 3], maxes = new double[(split.length - 3) / 3];
+                for (int q = 3; q < split.length; q += 3) {
+                    param[q/3 - 1] = split[q];
+                    mins[q/3 - 1] = Double.parseDouble(split[q + 1]);
+                    maxes[q/3 - 1] = Double.parseDouble(split[q + 2]);
+                }
+                Component temp = new Component(
+                        split[0],offsetx + 80 * (i.get() % COMP_RANGE),
+                        GUI_FLOW.cy + offsety + 80 * (i.get() / COMP_RANGE),
+                        Integer.parseInt(split[1]),
+                        Integer.parseInt(split[2]),
+                        param, mins, maxes);
                 templates.add(temp);
                 i.getAndIncrement();
                 if (i.get() == COMP_RANGE * COMP_HEIGHT) throw new RuntimeException("Too many elements configured!");
             });
         } catch (IOException e) {}
+    }
+
+    public static void save () {
+
     }
 
     private static void draw() {
@@ -88,7 +106,10 @@ public class Manager {
         for(int i = -1; i <= GUI_FLOW.cx / IMAGE_WIDTH; i++) gc.strokeLine((i + 1) * IMAGE_WIDTH + modW(offsetX),  0, (i + 1) * IMAGE_WIDTH + modW(offsetX), GUI_FLOW.cy);
         for(int i = -1; i <= GUI_FLOW.cy / IMAGE_WIDTH; i++) gc.strokeLine( 0, (i + 1) * IMAGE_WIDTH + modW(offsetY), GUI_FLOW.cx, (i + 1) * IMAGE_WIDTH + modW(offsetY));
         for (Component comp : components) if (comp != held) comp.drawWith(gc);
+
         for (Edge edge : Edge.edges) edge.drawWith(gc);
+
+        //for(Component comp : components) System.out.printf("%d %d\n", comp.gridx, comp.gridy);
     }
 
     private static void drawBar() {
@@ -98,8 +119,6 @@ public class Manager {
         gc.setFill(BAR_FILL);
         gc.fillRect(TRIM, TRIM + GUI_FLOW.cy, GUI_FLOW.tx - 2 * TRIM, GUI_FLOW.ty - GUI_FLOW.cy - 2 * TRIM);
         gc.fillRect(GUI_FLOW.cx + TRIM, TRIM, GUI_FLOW.tx - GUI_FLOW.cx - 2 * TRIM, GUI_FLOW.ty - 2 * TRIM);
-
-        for (Button button : buttons) button.drawWith(gc);
 
         gc.setFill(DARK_TRIM);
         for (Component template : templates) {
@@ -122,7 +141,7 @@ public class Manager {
         gc.fillRect(GUI_FLOW.cx + border, border, 160, 160);
         if (selected != null) gc.drawImage(selected.image, GUI_FLOW.cx + border, border, 160, 160);
 
-
+        for (Button button : buttons) button.drawWith(gc);
     }
 
     static void onMousePressed(javafx.scene.input.MouseEvent e) {
@@ -134,7 +153,9 @@ public class Manager {
             for (Component template : templates)
                 if (template.tlx < e.getX() && template.tlx + 80 > e.getX() &&
                         template.tly < e.getY() && template.tly + 80 > e.getY()) {//if hovering over a template
+                    //System.out.println("match: " + template.name);
                     held = new Component(template);
+                    //System.out.println("match: " + held.name);
                     components.add(held);
                     break;
                 }
@@ -154,7 +175,7 @@ public class Manager {
         drag_originY = (int) e.getY();
         offset_initX = offsetX;
         offset_initY = offsetY;
-        dragging = isCenter(e) && e.getX() < GUI_FLOW.cx && e.getY() < GUI_FLOW.cy;
+        dragging = held != null || isCenter(e) && e.getX() < GUI_FLOW.cx && e.getY() < GUI_FLOW.cy;
         draw();
     }
 
@@ -179,8 +200,7 @@ public class Manager {
                 Edge cur = Edge.getEdge(l[0], l[1], l[2], l[3]);
                 if (cur != null) Edge.removeEdge(cur);
             } else Edge.tryAddEdgeFromCur();
-        }
-        else if (dragging) {//we have something selected
+        } else if (dragging) {//we have something selected
             held.tlx = held.initx + (int) e.getX() - drag_originX;
             held.tly = held.inity + (int) e.getY() - drag_originY;
             held.invalid_location = held.tlx + IMAGE_WIDTH / 2 > GUI_FLOW.cx || held.tly + IMAGE_WIDTH / 2 > GUI_FLOW.cy;
@@ -197,6 +217,7 @@ public class Manager {
     }
 
     static void onMouseClicked(javafx.scene.input.MouseEvent e) {
+        //for (Component comp : components) System.out.println(comp.name);
         updateCur(e);//update cur
 
         if (e.getX() < GUI_FLOW.cx && e.getY() < GUI_FLOW.cy) {
@@ -210,7 +231,7 @@ public class Manager {
                 int[] l = getEdgeCoordsFromCur();
                 Edge cur = Edge.getEdge(l[0], l[1], l[2], l[3]);
                 if (cur != null) {
-                    if (IsKeyPressed.isShiftPressed()) Edge.removeEdge(cur);
+                    if (!GUI_FLOW.shift) Edge.removeEdge(cur);
                     else {
                         int cur_node = cur.getNode();
                         ArrayList<Edge> tbr = new ArrayList<>();
@@ -247,6 +268,8 @@ public class Manager {
         curY = gridify(e.getY(), offsetY);
         cur_mouseX = e.getX();
         cur_mouseY = e.getY();
+        for (Button button : buttons) button.update(e.getX(), e.getY(), e.isPrimaryButtonDown());
+
     }
 
     static int gridify (double coord, int offset) {

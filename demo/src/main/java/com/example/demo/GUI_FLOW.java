@@ -10,6 +10,7 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
@@ -20,6 +21,7 @@ import java.io.*;
 public class GUI_FLOW extends Application {
     public static final int IMAGE_WIDTH = 80;
     public static final int cx = 900, cy = 700, tx = 1100, ty = 900;
+    static boolean shift = false;
     private static final boolean isWindows = System.getProperty("os.name").toLowerCase().trim().startsWith("window");
     public static String pythonCommand = isWindows ? "python":"python3", join = isWindows ? "\\" : "/",
         basedir = System.getProperty("user.dir") + join("..");
@@ -40,18 +42,34 @@ public class GUI_FLOW extends Application {
         canvas.setOnMouseClicked(Manager::onMouseClicked);
         canvas.setOnMouseMoved(Manager::onMouseMoved);
 
+        scene.setOnKeyPressed(e -> {
+            if (e.getCode() == KeyCode.SHIFT) shift = true;
+        });
+        scene.setOnKeyReleased(e -> {
+            if (e.getCode() == KeyCode.SHIFT) shift = false;
+        });
+
         stage.setResizable(false);
         stage.show();
 
-        //runWillTerminate(pythonCommand + " txt_class_converter.py\n");
-        Manager.components.add(new Component("origin", 30, 30, 1, 2));
-        Manager.components.add(new Component("pit", 200, 30, 1, 2));
-        Manager.components.add(new Component("pipeNS", 300, 80, 1, 2));
-        Manager.components.add(new Component("pipeEW", 400, 180, 1, 2));
-        Manager.components.add(new Component("gatevalve", 500, 400, 1, 2));
-        Manager.components.add(new Component("pressurereliefvalve", 700, 200, 1, 2));
-        Manager.components.add(new Component("ballvalve", 700, 400, 1, 2));
+        /*runWillTerminate(pythonCommand + " txt_class_converter.py\n");
+        String[] e = new String[0];
+        double[] m = new double[0], n = new double[0];
+        Manager.components.add(new Component("origin", 30, 30, 1, 2, e, m , n));
+        Manager.components.add(new Component("pit", 200, 30, 1, 2, e, m , n));
+        Manager.components.add(new Component("pipeNS", 300, 80, 1, 2, e, m , n));
+        Manager.components.add(new Component("pipeEW", 400, 180, 1, 2, e, m , n));
+        Manager.components.add(new Component("gatevalve", 500, 400, 1, 2, e, m , n));
+        Manager.components.add(new Component("pressurereliefvalve", 700, 200, 1, 2, e, m , n));
+        Manager.components.add(new Component("ballvalve", 700, 400, 1, 2, e, m , n));
         for (Component comp : Manager.components) comp.place();
+        */
+
+        Manager.buttons.add(new Button("Save", cx / 2 + (tx - 160) / 2, ty - 100, 160, 30) {
+            public void run_action(){
+                Manager.save();
+            }
+        });
     }
     public void warning(String input){
         Stage temp = new Stage();
