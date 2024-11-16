@@ -4,21 +4,28 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.input.MouseButton;
 import javafx.scene.paint.Color;
 
 import static com.example.demo.GUI_FLOW.IMAGE_WIDTH;
 
 public class Manager {
-    private static final int TRIM = 5, COMP_RANGE = 10, COMP_HEIGHT = 2;
+    public static final double edge_perc = 0.1;//ignore 1/10th on each side, so center 0.8x0.8
+    private static final int TRIM = 5, COMP_RANGE = 10, COMP_HEIGHT = 2, GRID_WIDTH = 1;
     public static GraphicsContext gc;
-    public static  int offsetX, offsetY, drag_originX, drag_originY, offset_initX, offset_initY, curX = -2, curY = -2;
+    public static int offsetX, offsetY, drag_originX, drag_originY, offset_initX, offset_initY, curX = -2, curY = -2, selected_node = -1;
+    public static double cur_mouseX, cur_mouseY;
     public static ArrayList<Button> buttons = new ArrayList<>();
     public static ArrayList<Component> components = new ArrayList<>(), templates = new ArrayList<>();
     private static Component held = null, selected = null;
-    private static boolean dragging = false;
+    private static boolean dragging = false, right_held = false;
+    public static boolean unhighlight_next = false;
+
+    private static HashMap<String, Integer> node_map;//TODO:converts "x.y" to netID
 
     private static final Color
             BACKGROUND_COLOR = Color.WHITE,
@@ -28,6 +35,7 @@ public class Manager {
             DARK_HIGHLIGHT_COLOR = Color.color(0.8, 0.8, 0.8),
             LIGHT_HIGHLIGHT_COLOR = Color.color(0.92, 0.92, 0.92),
             DARK_TRIM = Color.color(0.3, 0.3, 0.3);
+
 
     static void init(GraphicsContext gc_in, String path) {
         gc = gc_in;
@@ -66,11 +74,21 @@ public class Manager {
         //convert from random coords to square coords for the purpose of drawing the rect
         if ((x < 0 ? -x : x) % 2 == 1 && (y < 0 ? -y : y) % 2 == 1)
             gc.fillRect(offsetX + IMAGE_WIDTH *  (x - 1) / 2.0, offsetY + IMAGE_WIDTH * (y - 1) / 2.0, IMAGE_WIDTH, IMAGE_WIDTH);
+        else if (!right_held){
+            double tiebreakerX = modW(cur_mouseX - offsetX) / IMAGE_WIDTH,
+                    tiebreakerY = modW(cur_mouseY - offsetY) / IMAGE_WIDTH;
+            if (!((tiebreakerX > 1 - edge_perc || tiebreakerX < edge_perc) && (tiebreakerY > 1 - edge_perc || tiebreakerY < edge_perc))) {
+                int[] l = getEdgeCoordsFromCur();
+                Edge.shadowDraw(gc, l[0], l[1], l[2], l[3]);
+            }
+        }
 
         gc.setStroke(GRID_COLOR);
+        gc.setLineWidth(GRID_WIDTH);
         for(int i = -1; i <= GUI_FLOW.cx / IMAGE_WIDTH; i++) gc.strokeLine((i + 1) * IMAGE_WIDTH + modW(offsetX),  0, (i + 1) * IMAGE_WIDTH + modW(offsetX), GUI_FLOW.cy);
         for(int i = -1; i <= GUI_FLOW.cy / IMAGE_WIDTH; i++) gc.strokeLine( 0, (i + 1) * IMAGE_WIDTH + modW(offsetY), GUI_FLOW.cx, (i + 1) * IMAGE_WIDTH + modW(offsetY));
         for (Component comp : components) if (comp != held) comp.drawWith(gc);
+        for (Edge edge : Edge.edges) edge.drawWith(gc);
     }
 
     private static void drawBar() {
@@ -89,6 +107,7 @@ public class Manager {
         }
         gc.setFill(BACKGROUND_COLOR);
         gc.setStroke(GRID_COLOR);
+        gc.setLineWidth(GRID_WIDTH);
         for (Component template : templates) {
             gc.fillRect(template.tlx, template.tly, 80, 80);
             gc.strokeLine(template.tlx, template.tly, template.tlx, template.tly + 80);
@@ -106,17 +125,9 @@ public class Manager {
 
     }
 
-    private static Component getComponentAtMouse(javafx.scene.input.MouseEvent e) {
-        if (isCenter(e)) {//if in center of a square
-            int gridX = gridify(e.getX(), offsetX, true), gridY = gridify(e.getY(), offsetY, true);
-            for (Component comp : components)
-                if (gridX == comp.gridx && gridY == comp.gridy) //if in bounds
-                    return comp;
-        }
-        return null;
-    }
-
     static void onMousePressed(javafx.scene.input.MouseEvent e) {
+        right_held = e.getButton() == MouseButton.SECONDARY;
+        updateCur(e);
         //find component picked up.
         held = getComponentAtMouse(e);
         if (e.getX() < GUI_FLOW.cx && e.getY() > GUI_FLOW.cy) {//check if pressed over one of the bins
@@ -143,25 +154,33 @@ public class Manager {
         drag_originY = (int) e.getY();
         offset_initX = offsetX;
         offset_initY = offsetY;
-        dragging = e.getX() < GUI_FLOW.cx && e.getY() < GUI_FLOW.cy;
+        dragging = isCenter(e) && e.getX() < GUI_FLOW.cx && e.getY() < GUI_FLOW.cy;
         draw();
     }
 
     static void onMouseReleased(javafx.scene.input.MouseEvent e) {
+        right_held = false;
+        updateCur(e);
         if (held != null) {
             held.place();
             held = null;
         }
-        curX = gridify(e.getX(), offsetX);
-        curY = gridify(e.getY(), offsetY);
         draw();
     }
     //TODO: connect to nets
     static void onMouseDragged(javafx.scene.input.MouseEvent e) {
+        updateCur(e);
         if (held == null && dragging) {
             offsetX = offset_initX + (int) e.getX() - drag_originX;
             offsetY = offset_initY + (int) e.getY() - drag_originY;
-        } else if (held != null) {//we have something selected
+        } else if (held == null) {
+            if (e.getButton() == MouseButton.SECONDARY){
+                int[] l = getEdgeCoordsFromCur();
+                Edge cur = Edge.getEdge(l[0], l[1], l[2], l[3]);
+                if (cur != null) Edge.removeEdge(cur);
+            } else Edge.tryAddEdgeFromCur();
+        }
+        else if (dragging) {//we have something selected
             held.tlx = held.initx + (int) e.getX() - drag_originX;
             held.tly = held.inity + (int) e.getY() - drag_originY;
             held.invalid_location = held.tlx + IMAGE_WIDTH / 2 > GUI_FLOW.cx || held.tly + IMAGE_WIDTH / 2 > GUI_FLOW.cy;
@@ -178,24 +197,56 @@ public class Manager {
     }
 
     static void onMouseClicked(javafx.scene.input.MouseEvent e) {
+        updateCur(e);//update cur
+
         if (e.getX() < GUI_FLOW.cx && e.getY() < GUI_FLOW.cy) {
             if (selected != null) selected.higher_highlighted = false;
             Component old = selected;
             selected = getComponentAtMouse(e);
             if (selected != null && selected != old) selected.higher_highlighted = true;
         }
+        if (!isCenter(e)) {
+            if (e.getButton() == MouseButton.SECONDARY) {
+                int[] l = getEdgeCoordsFromCur();
+                Edge cur = Edge.getEdge(l[0], l[1], l[2], l[3]);
+                if (cur != null) {
+                    if (IsKeyPressed.isShiftPressed()) Edge.removeEdge(cur);
+                    else {
+                        int cur_node = cur.getNode();
+                        ArrayList<Edge> tbr = new ArrayList<>();
+                        for (Edge edge : Edge.edges) if (edge.getNode() == cur_node) tbr.add(edge);
+                        Edge.removeAll(tbr);
+                    }
+                }
+            } else {
+                Edge.tryAddEdgeFromCur();
+                int[] l = getEdgeCoordsFromCur();
+                Edge cur = Edge.getEdge(l[0], l[1], l[2], l[3]);
+                if (cur != null) {
+                    int old = selected_node;
+                    selected_node = cur.getNode();
+                    if (old == selected_node && unhighlight_next) selected_node = -1;
+                    unhighlight_next = true;
+                }
+            }
+        } else selected_node = -1;
 
         draw();
     }
 
     static void onMouseMoved(javafx.scene.input.MouseEvent e) {
-        int gridX = gridify(e.getX(), offsetX), gridY = gridify(e.getY(), offsetY);
-        curX = gridX;
-        curY = gridY;
+        updateCur(e);
 
         if (isCenter(e)) //if in double odd coord (in square)
-            for (Component comp : components) comp.highlighted = comp.gridx == gridX && comp.gridy == gridY;
+            for (Component comp : components) comp.highlighted = comp.gridx == curX && comp.gridy == curY;
         draw();
+    }
+
+    private static void updateCur(javafx.scene.input.MouseEvent e) {
+        curX = gridify(e.getX(), offsetX);
+        curY = gridify(e.getY(), offsetY);
+        cur_mouseX = e.getX();
+        cur_mouseY = e.getY();
     }
 
     static int gridify (double coord, int offset) {
@@ -203,7 +254,6 @@ public class Manager {
     }
 
     static int gridify (double coord, int offset, boolean square_only) {
-        final double edge_perc = 0.1;//ignore 1/10th on each side, so center 0.8x0.8
         int flattened = (int) (coord - offset) / IMAGE_WIDTH;
         if (coord - offset < 0) flattened--;//correction for integer division going to 0 instead of to next lowest int.
         flattened *= 2;
@@ -215,7 +265,7 @@ public class Manager {
         return flattened;
     }
 
-    private static double modW (double input) {
+    static double modW (double input) {
         double temp = input % IMAGE_WIDTH;
         if (temp < 0) temp += IMAGE_WIDTH;
         return temp;
@@ -227,5 +277,37 @@ public class Manager {
         if (c1 < 0) c1 = -c1;
         if (c2 < 0) c2 = -c2;
         return c1 % 2 == 1 && c2 % 2 == 1;
+    }
+
+    private static Component getComponentAtMouse(javafx.scene.input.MouseEvent e) {
+        if (isCenter(e)) {//if in center of a square
+            int gridX = gridify(e.getX(), offsetX, true), gridY = gridify(e.getY(), offsetY, true);
+            for (Component comp : components)
+                if (gridX == comp.gridx && gridY == comp.gridy) //if in bounds
+                    return comp;
+        }
+        return null;
+    }
+
+    static int[] getEdgeCoordsFromCur() {
+        int tempx = (curX < 0 ? -curX : curX) % 2, tempy = (curY < 0 ? -curY : curY) % 2;
+        double tiebreakerX = modW(cur_mouseX - offsetX) / IMAGE_WIDTH, tiebreakerY = modW(cur_mouseY - offsetY) / IMAGE_WIDTH;
+        if (tempx == 0 && tempy == 0) {//corner
+            if (tiebreakerX > 0.5) tiebreakerX -= 1;
+            if (tiebreakerY > 0.5) tiebreakerY -= 1;
+            double angle = Math.atan2(tiebreakerY, tiebreakerX) + Math.PI;//[0, 2π)
+
+            if (angle > Math.PI / 4 && angle < 3 * Math.PI / 4) tempy = -1;//go "up" //if angle is between π/4 and 3π/4, we go up
+            else if (angle > 3 * Math.PI / 4 && angle < 5 * Math.PI / 4) tempx = 1;//go left
+            else if (angle > 5 * Math.PI / 4 && angle < 7 * Math.PI / 4) tempy = 1;//go "down"
+            else tempx = -1;//go right
+        } else if (tempx == 1) {//between two vertical boxes. Make horizontal.
+            if (tiebreakerX < 0.5) tempx = -1;
+            //else tempx = 1;//redundant
+        } else {//between two horizontal boxes. Make vertical.
+            if (tiebreakerY < 0.5) tempy = -1;
+            //else tempy = 1;//redundant
+        }
+        return new int[]{curX, curY, curX + tempx, curY + tempy};
     }
 }

@@ -59,7 +59,5 @@ public class Component {
         gridy = Manager.gridify(this.tly + IMAGE_WIDTH / 2.0, Manager.offsetY, true);
         if (invalid_location)
             Manager.components.remove(this);//remove self, no longer will exist
-        System.out.println(gridx + ", " + gridy);
-        System.out.printf("\tinvalid: %b\n\tblocked: %b\n\tcontains: %b\n", invalid_location, blocked_location, Manager.components.contains(this));
     }
 }
