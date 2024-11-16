@@ -1,2 +1,5 @@
 pipeNS,0,2,pipeNS.png
 pipeEW,1,3,pipeEW.png
+origin,0,1,origin.png
+pit,1,0,pit.png
+gatevalve,1,3,gatevalve.png

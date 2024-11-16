@@ -9,6 +9,7 @@ import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
@@ -17,54 +18,38 @@ import javafx.stage.Stage;
 
 import java.io.*;
 public class GUI_FLOW extends Application {
-    private String author;
-    private String sourcepath;
-    private Scene scene;
-    private Canvas canvas;
-
-    public int offsetX, offsetY, originX, originY, startX, startY;
-    private boolean dragging = false;
-    private static final int cx = 700, cy = 500;
-    private GraphicsContext gc;
+    public static final int IMAGE_WIDTH = 80;
+    public static final int cx = 900, cy = 700, tx = 1100, ty = 900;
     private static final boolean isWindows = System.getProperty("os.name").toLowerCase().trim().startsWith("window");
-    public static String pythonCommand = isWindows ? "python":"python3", join = isWindows ? "\\" : "/";
+    public static String pythonCommand = isWindows ? "python":"python3", join = isWindows ? "\\" : "/",
+        basedir = System.getProperty("user.dir") + join("..");
 
     public void start(Stage stage){
-
         BorderPane root = new BorderPane();
-        scene = new Scene(root);
+        Scene scene = new Scene(root);
         stage.setScene(scene);
-        canvas = new Canvas(cx, cy);
-        gc = canvas.getGraphicsContext2D();
-        offsetX = cx/3;
-        offsetY = cy/2;
-        startX = cx/3;
-        startY = cy/2;
-        originX = cx/3;
-        originY = cy/2;
+        Canvas canvas = new Canvas(tx, ty);
+        root.setCenter(canvas);
+        GraphicsContext gc = canvas.getGraphicsContext2D();
+        Manager.init(gc);
 
-        canvas.setOnMouseReleased(e -> {
-            startX = offsetX;
-            startY = offsetY;
-        });
-        canvas.setOnMousePressed(e -> {
-            originX = (int)e.getX();
-            originY = (int)e.getY();
-        });
-        canvas.setOnMouseDragged(e -> {
 
-        });
-        canvas.setOnMouseClicked(e -> {
-
-        });
-        canvas.setOnMouseMoved(e -> {
-
-        });
+        canvas.setOnMouseReleased(Manager::onMouseReleased);
+        canvas.setOnMousePressed(Manager::onMousePressed);
+        canvas.setOnMouseDragged(Manager::onMouseDragged);
+        canvas.setOnMouseClicked(Manager::onMouseClicked);
+        canvas.setOnMouseMoved(Manager::onMouseMoved);
 
         stage.setResizable(false);
         stage.show();
 
-        runWillTerminate(pythonCommand + " txt_class_converter.py\n");
+        //runWillTerminate(pythonCommand + " txt_class_converter.py\n");
+        Manager.components.add(new Component("origin", 30, 30));
+        Manager.components.add(new Component("pit", 200, 30));
+        Manager.components.add(new Component("pipeNS", 300, 80));
+        Manager.components.add(new Component("pipeEW", 400, 180));
+        Manager.components.add(new Component("gatevalve", 500, 400));
+        for (Component comp : Manager.components) comp.place();
     }
     public void warning(String input){
         Stage temp = new Stage();
@@ -84,9 +69,7 @@ public class GUI_FLOW extends Application {
 
 
     public static void runWillTerminate(String... command){
-        System.out.println(System.getProperty("user.dir") + String.format("%s..%spython%s", join, join, join));
-
-        ProcessBuilder processBuilder = new ProcessBuilder(command).directory(new File(System.getProperty("user.dir") + String.format("%s..%spython/", join, join)));
+        ProcessBuilder processBuilder = new ProcessBuilder(command).directory(new File(join(basedir, "python")));
         try {
             Process process0 = processBuilder.start();
             process0.waitFor();
@@ -96,5 +79,11 @@ public class GUI_FLOW extends Application {
         } catch (InterruptedException ignored){
             throw new RuntimeException("Vincent, this must be your fault again!");
         }
+    }
+
+    public static String join(String... args) {
+        StringBuilder base = new StringBuilder();
+        for (String str : args) base.append(join).append(str);
+        return base.toString();
     }
 }
