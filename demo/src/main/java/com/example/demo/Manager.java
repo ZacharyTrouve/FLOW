@@ -16,6 +16,7 @@ import javafx.scene.paint.Color;
 import static com.example.demo.GUI_FLOW.IMAGE_WIDTH;
 
 public class Manager {
+    private static final double step_size = 1, step_number = 100, fluid_viscosity = 1, fluid_density = 1;
     public static final double edge_perc = 0.1;//ignore 1/10th on each side, so center 0.8x0.8
     private static final int TRIM = 5, COMP_RANGE = 10, COMP_HEIGHT = 2, GRID_WIDTH = 1;
     public static GraphicsContext gc;
@@ -25,7 +26,7 @@ public class Manager {
     public static ArrayList<Component> components = new ArrayList<>(), templates = new ArrayList<>();
     private static Component held = null, selected = null;
     private static boolean dragging = false, right_held = false;
-    public static boolean unhighlight_next = false;
+    public static boolean unhighlight_next = false, graphs = false;
     private static final Color
             BACKGROUND_COLOR = Color.WHITE,
             GRID_COLOR = Color.LIGHTGRAY,
@@ -52,6 +53,8 @@ public class Manager {
                 double[] mins = new double[(split.length - 3) / 3], maxes = new double[(split.length - 3) / 3];
                 for (int q = 3; q < split.length; q += 3) {
                     param[q/3 - 1] = split[q];
+                    if (split[q + 1].equals("?")) split[q + 1] = "-1";
+                    if (split[q + 2].equals("?")) split[q + 2] = "-1";
                     mins[q/3 - 1] = Double.parseDouble(split[q + 1]);
                     maxes[q/3 - 1] = Double.parseDouble(split[q + 2]);
                 }
@@ -88,6 +91,28 @@ public class Manager {
             writer.flush();
             writer.close();
         } catch (IOException e) {}
+        GUI_FLOW.runWillTerminate(GUI_FLOW.pythonCommand + String.format(" %s %.8f %f %.2f %.2f\n", "txt_class_converter.py", step_size, step_number, fluid_density, fluid_viscosity));
+        load(path);
+    }
+
+    public static void load(String path) {
+        path = path.replace("input", "result");
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(path));
+            String curLine = reader.readLine();
+            while (curLine != null) {
+                String[] split = curLine.split(",", 2);
+                Component cq = null;
+                for (Component comp : components)
+                    if (comp.uniquename.equals(split[0]))  cq = comp;
+                if (cq == null) throw new RuntimeException("No match for " + split[0]);
+                split = split[1].split(",");
+                double[] values = new double[split.length];
+                for (int i = 0; i < split.length; i++) values[i] = Double.parseDouble(split[i]);
+                cq.stored_values = values;
+                curLine = reader.readLine();
+            }
+        } catch (IOException ignored) {}
     }
 
     private static void draw() {
@@ -95,7 +120,7 @@ public class Manager {
         gc.fillRect(0, 0, GUI_FLOW.tx, GUI_FLOW.ty);
         drawComponents();
         drawBar();
-        if (held != null) held.drawWith(gc);
+        if (held != null) held.drawWith(gc, 80, false);
     }
 
     private static void drawComponents() {//and grid....
@@ -121,11 +146,9 @@ public class Manager {
         gc.setLineWidth(GRID_WIDTH);
         for(int i = -1; i <= GUI_FLOW.cx / IMAGE_WIDTH; i++) gc.strokeLine((i + 1) * IMAGE_WIDTH + modW(offsetX),  0, (i + 1) * IMAGE_WIDTH + modW(offsetX), GUI_FLOW.cy);
         for(int i = -1; i <= GUI_FLOW.cy / IMAGE_WIDTH; i++) gc.strokeLine( 0, (i + 1) * IMAGE_WIDTH + modW(offsetY), GUI_FLOW.cx, (i + 1) * IMAGE_WIDTH + modW(offsetY));
-        for (Component comp : components) if (comp != held) comp.drawWith(gc);
-
+        for (Component comp : components) if (comp != held) comp.drawWith(gc, 80, false);
         for (Edge edge : Edge.edges) edge.drawWith(gc);
-
-        //for(Component comp : components) System.out.printf("%d %d\n", comp.gridx, comp.gridy);
+        if (graphs) for (Component comp : components) comp.drawGraph(gc, 200);
     }
 
     private static void drawBar() {
@@ -144,10 +167,11 @@ public class Manager {
         gc.setStroke(GRID_COLOR);
         gc.setLineWidth(GRID_WIDTH);
         for (Component template : templates) {
+            gc.setFill(BACKGROUND_COLOR);
             gc.fillRect(template.tlx, template.tly, 80, 80);
             gc.strokeLine(template.tlx, template.tly, template.tlx, template.tly + 80);
             gc.strokeLine(template.tlx + 80, template.tly, template.tlx + 80, template.tly + 80);
-            template.drawWith(gc);
+            template.drawWith(gc, 80, false);
         }
 
         final double border = (GUI_FLOW.tx - GUI_FLOW.cx - 160.0) / 2;
@@ -155,7 +179,7 @@ public class Manager {
         gc.fillRect(GUI_FLOW.cx + border - TRIM, border - TRIM, 160 + 2 * TRIM, 160 + 2 * TRIM);
         gc.setFill(BACKGROUND_COLOR);
         gc.fillRect(GUI_FLOW.cx + border, border, 160, 160);
-        if (selected != null) gc.drawImage(selected.image, GUI_FLOW.cx + border, border, 160, 160);
+        if (selected != null) selected.drawAt(gc, 160, GUI_FLOW.cx + border, border, true);
 
         for (Button button : buttons) button.drawWith(gc);
     }

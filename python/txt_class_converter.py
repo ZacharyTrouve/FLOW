@@ -6,7 +6,6 @@ def comp_from_line(line):
     sp = line.split(',', 1)
 
     COMP = None
-    
     if   sp[0] == "valve": COMP = components.Valve(sp[1])
     elif sp[0] == "checkvalve": COMP = components.CheckValve(sp[1])
     elif sp[0] == "pipeNS" or sp[0] == "pipeEW": COMP = components.Pipe(sp[1])
@@ -14,7 +13,7 @@ def comp_from_line(line):
     elif sp[0] == "pressurereliefvalve": COMP = components.PressureReliefValve(sp[1])
     elif sp[0] == "tank": COMP = components.Tank(sp[1])
     elif sp[0] == "orificeplate": COMP = components.OrificePlate(sp[1])
-    elif sp[0] == "burstdisk": COMP = components.BurstDisk(sp[1])
+    elif sp[0] == "burstcap": COMP = components.BurstDisk(sp[1])
 
     if (COMP == None): raise ValueError()
     return 

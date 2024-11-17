@@ -54,6 +54,7 @@ public class GUI_FLOW extends Application {
 
         //runWillTerminate(pythonCommand + " txt_class_converter.py\n");
         Manager.buttons.add(new Button("Save", cx / 2 + (tx - 160) / 2, ty - 100, 160, 30) {public void run_action(){Manager.save();}});
+        Manager.buttons.add(new Button("Graphs", cx / 2 + (tx - 160) / 2, ty - 70, 160, 30) {public void run_action(){Manager.graphs = !Manager.graphs;}});
     }
     public void warning(String input){
         Stage temp = new Stage();
