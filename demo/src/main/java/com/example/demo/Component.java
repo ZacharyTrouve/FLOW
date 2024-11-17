@@ -96,7 +96,7 @@ public class Component {
                 map.getOrDefault((gridx - 1) + "." + gridy, -1)
         };
 
-        if (this.compname.equals("pit")) {
+        /*if (this.compname.equals("pit")) {
             this.uniquename = "pit";
             int net1 = -1, net2 = -1;
             if (this.IN != -1) net1 = nets[this.IN];
@@ -105,7 +105,7 @@ public class Component {
             //System.out.println(Arrays.toString(nets));
             if (net1 == -1) throw new Error();
             return String.format("SINK," + net1);
-        }
+        }*/
 
         int in_id = -1, out_id = -1;
         if (this.IN != -1) {

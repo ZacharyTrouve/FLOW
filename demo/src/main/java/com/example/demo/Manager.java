@@ -180,12 +180,13 @@ public class Manager {
         if (graphs) {
             for (Component comp : components)
                 if (comp.inTransit) drawGraph(gc, 200, comp.recorded_values, comp.tlx, comp.tly);
-                else drawGraph(gc, 200, comp.recorded_values, (comp.gridx - 1) * IMAGE_WIDTH / 2.0 + offsetX, (comp.gridy - 1) * IMAGE_WIDTH / 2.0 + offsetY);
+                else if(comp.highlighted || comp.higher_highlighted) drawGraph(gc, 200, comp.recorded_values, (comp.gridx - 1) * IMAGE_WIDTH / 2.0 + offsetX, (comp.gridy - 1) * IMAGE_WIDTH / 2.0 + offsetY);
             ArrayList<Integer> already_drawn = new ArrayList<>();
             for (Edge edge : Edge.edges) {
                 int node = edge.getNode();
                 if (already_drawn.contains(node)) continue;
                 if (!node_data_map.containsKey(node)) continue;
+                if (selected_node != node) continue;
                 already_drawn.add(node);
                 drawGraph(gc, 200, node_data_map.get(node), edge.start_x * IMAGE_WIDTH / 2.0 + offsetX, edge.start_y * IMAGE_WIDTH / 2.0 + offsetY);
             }

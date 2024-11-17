@@ -1,0 +1,1 @@
+valve,valve0,1,2,{'state':'0.0','Cv_open':'1.2','time_of_opening':'0.0','time_taken_2_open':'0.1','type':'gate'}
