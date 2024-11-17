@@ -17,9 +17,6 @@ import static com.example.demo.GUI_FLOW.IMAGE_WIDTH;
 public class Component {
     private static final int TRIM = 3;
     private static final Color
-        GRAPH_COLOR = Color.color(0.95, 0.95, 0.95),
-        GRAPH_TRIM = Color.color(0.7, 0.7, 0.7),
-        GRAPH_LINE = Color.color(0.4, 0.4, 0.8),
         BASE_COLOR = Color.color(0.1, 0.1, 0.1),
         INVALID_COLOR = Color.color(0.9, 0.2, 0.1),
         BLOCKED_COLOR = Color.color(0.8, 0.8, 0.22),
@@ -103,12 +100,13 @@ public class Component {
         }
         if (this.OUT != -1) {
             out_id = nets[this.OUT];
-            if (in_id == -1) throw new RuntimeException(this.name + " at (" + this.gridx + ", " + this.gridy + ") is not connected to a complete number of nets!");
+            if (out_id == -1) throw new RuntimeException(this.name + " at (" + this.gridx + ", " + this.gridy + ") is not connected to a complete number of nets!");
         }
 
         this.uniquename = this.name + id;
+        this.uniquename = this.uniquename.replaceAll("EW|NS", "");
 
-        StringBuilder str = new StringBuilder(this.name + "," + this.name + id + "," + in_id + "," + out_id + ",{");
+        StringBuilder str = new StringBuilder(this.name + "," + this.uniquename + "," + in_id + "," + out_id + ",{");
         for (int i = 0; i < this.stored_values.length; i++) str.append("'").append(this.parameters[i]).append("':'").append(this.stored_values[i]).append("',");
         str.append("}");
         return str.toString().replaceAll(",}", "}");
@@ -189,46 +187,5 @@ public class Component {
         }
         return Color.LIMEGREEN;//gets filtered out
         //throw new RuntimeException("Unknown color! " + grayVal);
-    }
-
-    public void drawGraph (GraphicsContext gc, int size) {
-        double[] points = stored_values;
-        points = new double[]{0.2, 0.8, 0.9, 1.2, 1.3, 1.8};
-        if (points == null || points.length <= 1) return;
-
-        gc.setFill(GRAPH_TRIM);
-        gc.fillRect(tlx, tly - size, size, size);
-        gc.setFill(GRAPH_COLOR);
-        gc.fillRect(tlx + TRIM, tly - size + TRIM, size - 2 * TRIM, size - 2 * TRIM);
-
-        gc.setStroke(Color.BLACK);
-        gc.setLineWidth(1);
-        final int offsetl = 30, offset = 5;
-        gc.strokeLine(tlx + TRIM + offsetl, tly - size + TRIM + offset, tlx + TRIM + offsetl, tly - TRIM - offset);
-        gc.strokeLine(tlx + TRIM + offsetl, tly - TRIM - offset, tlx + size - TRIM - offset, tly - TRIM - offset);
-
-        double min = points[0], max = points[0];
-        for (double point : points) {
-            if (point < min) min = point;
-            if (point > max) max = point;
-        }
-        gc.setStroke(GRAPH_LINE);
-        gc.setLineWidth(1);
-        double step_size = (double) (size - 2 * TRIM - offsetl - offset) / (points.length - 1);
-        for (int i = 0; i < points.length - 1; i++) {
-            double scaled1 = (points[i] - min) / (max - min),
-                    scaled2 = (points[i + 1] - min) / (max - min);
-            gc.strokeLine(
-                    tlx + TRIM + offsetl + i * step_size,
-                    tly - TRIM - offset - scaled1 * (size - 2 * TRIM - 2 * offset),
-                    tlx + TRIM + offsetl + (i + 1) * step_size,
-                    tly - TRIM - offset - scaled2 * (size - 2 * TRIM - 2 * offset)
-            );
-        }
-        gc.setTextAlign(TextAlignment.RIGHT);
-        gc.setTextBaseline(VPos.BASELINE);
-        gc.setStroke(Color.BLACK);
-        gc.strokeText(String.format("%.2f", max), tlx + TRIM + offsetl - 3, tly - size + TRIM + offset + 5);
-        gc.strokeText(String.format("%.2f", min), tlx + TRIM + offsetl - 3, tly - TRIM - offset - 5);
     }
 }

@@ -2,15 +2,14 @@ import networkx as nx
 import csv
 import datetime
 
-from Component import *
-from Valve import Valve
-from CheckValve import CheckValve
-from Pipe import Pipe
-from PressureRegulator import Regulator
-from PressureReliefValve import PressureReliefValve
-from Tank import Tank
-from OrificePlate import OrificePlate
-from BurstDisk import BurstDisk
+from components.valve import Valve
+from components.checkValve import CheckValve
+from components.pipe import Pipe
+from components.pressureRegulator import PressureRegulator
+from components.pressureReliefValve import PressureReliefValve
+from components.tank import Tank
+from components.burstDisk import BurstDisk
+from components.orificePlate import OrificePlate
 #from Pump import Pump
 
 def make_graph(list_of_objects):
@@ -25,7 +24,7 @@ def make_graph(list_of_objects):
         for predecessor in G.predecessors(node):
             for key, edge_data in G[predecessor].items():
                 component = edge_data.get('component', None)
-                if isinstance(component, tank):
+                if isinstance(component, Tank):
                     G.nodes[predecessor]['pressure'] = component.pressure
 
         G.nodes[node]['pressure_over_time'] = []

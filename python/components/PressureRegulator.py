@@ -1,8 +1,8 @@
-import Component
+from .component import Component
 import ast
 from math import sqrt
 
-class PressureRegulator(Component.Component):
+class PressureRegulator(Component):
   def __init__(self, ID, input_node, output_node, max_Cv, min_Cv, inertia, damping, target_pressure):
     self.ID = ID
     self.input_node = input_node

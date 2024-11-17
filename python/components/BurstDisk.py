@@ -1,17 +1,17 @@
-import Component
+from .component import Component
 import ast
 from math import pi, sqrt
 
 
-class BurstDisk(Component.Component):
-  def __init__(self, ID, input_node, output_node, state, burst_pressure, burst_disk_diameter, Cv):
+class BurstDisk(Component):
+  '''def __init__(self, ID, input_node, output_node, state, burst_pressure, burst_disk_diameter, Cv):
     self.ID = ID
     self.input_node = input_node
     self.output_node = output_node
     self.state = state
     self.burst_pressure = burst_pressure
     self.burst_disk_diameter = burst_disk_diameter
-    self.Cv = Cv
+    self.Cv = Cv'''
 
   def __init__(self, line):
     split = line.split(',', 3)
@@ -19,10 +19,10 @@ class BurstDisk(Component.Component):
     self.input_node = split[1]
     self.output_node = split[2]
     dic = ast.literal_eval(split[3])
-    self.state = dic['state']
-    self.burst_pressure = dic['burst_pressure']
-    self.burst_disk_diameter = dic['burst_disk_diameter']
-    self.Cv = dic['Cv']
+    self.state = float(dic['state'])
+    self.burst_pressure = float(dic['burst_pressure'])
+    self.burst_disk_diameter = float(dic['burst_disk_diameter'])
+    self.Cv = float(dic['Cv'])
     #state,0,1,burst_pressure,?,?,burst_disk_diameter,0,1,Cv,0,10
 
   def pdrop(self, mass_flow_rate, fluid_density, dynamic_viscosity):

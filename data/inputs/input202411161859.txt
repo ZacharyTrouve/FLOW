@@ -1,3 +1,4 @@
-gatevalve0,0,1,{'Cv':'0.0'}
-ballvalve0,2,0,{'Cv':'0.0'}
-pipeEW0,2,1,{'width':'0.0'}
+gatevalve,gatevalve0,0,1,{'Cv_open':'0.0','state':'0.0','time_of_opening':'10.0','time_taken_2_open':'1.2'}
+checkvalve,checkvalve0,2,0,{'Cv_open':'0.0','Cv_closed':'0.0','state':'0.0'}
+pipeEW,pipe0,2,1,{'pipe_diameter':'0.0','pipe_length':'3.0'}
+tank,tank0,-1,2,{'initial_mass':'3','mass':'12','pressure':'800','time':'13'}

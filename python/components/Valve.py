@@ -1,16 +1,16 @@
-import Component
-import ast
+from .component import Component
 from math import sqrt, floor
+import ast
 
-class Valve(Component.Component):
-  def init(self, ID, input_node, output_node, Cv, time_of_opening, time_taken_2_open, type = "Ball"):
+class Valve(Component):
+  '''def init(self, ID, input_node, output_node, Cv, time_of_opening, time_taken_2_open, type = "Ball"):
     self.ID = ID
     self.input_node = input_node
     self.output_node = output_node
     self.state = 0
     self.Cv_open = Cv
     self.time_of_opening = time_of_opening
-    self.time_taken_2_open = time_taken_2_open
+    self.time_taken_2_open = time_taken_2_open'''
 
   def __init__(self, line):
     split = line.split(',', 3)
@@ -18,10 +18,10 @@ class Valve(Component.Component):
     self.input_node = split[1]
     self.output_node = split[2]
     dic = ast.literal_eval(split[3])
-    self.state = dic['state']
-    self.Cv_open = dic['Cv_open']
-    self.time_of_opening = dic['time_of_opening']
-    self.time_taken_2_open = dic['time_taken_2_open']
+    self.state = float(dic['state'])
+    self.Cv_open = float(dic['Cv_open'])
+    self.time_of_opening = float(dic['time_of_opening'])
+    self.time_taken_2_open = float(dic['time_taken_2_open'])
     #state,0,1,Cv_open,?,?,time_of_opening,0,inf,time_taken_2_open,0,10000
 
     if self.time_of_opening <= 0 and self.time_taken_2_open <= 0:

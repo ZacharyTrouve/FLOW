@@ -1,4 +1,3 @@
-
 class Component:
   def __init__(self, ID, input_node, output_node):
     self.ID = ID

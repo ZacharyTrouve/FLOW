@@ -1,17 +1,17 @@
-import Component
+from .component import Component
 import ast
 from math import pi, sqrt
 
 
-class Tank(Component.Component):
-  def __init__(self, ID, input_node, output_node, mass, pressure):
+class Tank(Component):
+  '''def __init__(self, ID, input_node, output_node, mass, pressure):
     self.ID = ID
     self.input_node = input_node
     self.output_node = output_node
     self.initial_mass = mass
     self.mass = mass
     self.pressure = pressure
-    self.time = 0
+    self.time = 0'''
 
   def __init__(self, line):
     split = line.split(',', 3)
@@ -19,10 +19,10 @@ class Tank(Component.Component):
     self.input_node = split[1]
     self.output_node = split[2]
     dic = ast.literal_eval(split[3])
-    self.initial_mass = dic['initial_mass']
-    self.mass = dic['mass']
-    self.pressure = dic['pressure']
-    self.time = dic['time']
+    self.initial_mass = float(dic['initial_mass'])
+    self.mass = float(dic['mass'])
+    self.pressure = float(dic['pressure'])
+    self.time = float(dic['time'])
     #initial_mass,0,10000000,mass,0,10000000,pressure,0,10000000,time,0,inf
 
       

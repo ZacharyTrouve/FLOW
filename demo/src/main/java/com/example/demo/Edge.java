@@ -17,7 +17,7 @@ public class Edge {
     private static int nextID = 0;
 
     private static final int STROKE_THICK = 5, STROKE_DEFAULT = 3;
-    private final int start_x, start_y, end_x, end_y;
+    public final int start_x, start_y, end_x, end_y;
     private int node;
     private Edge parent_node;
     public Edge (int startx, int starty, int endx, int endy) {

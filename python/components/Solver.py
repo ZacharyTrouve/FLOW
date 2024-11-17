@@ -9,7 +9,7 @@ from Pipe import pipe
 from python.components.PressureRegulator import Regulator
 from python.components.PressureReliefValve import pressure_relief_valve
 from Tank import tank
-from python.components.OrificePlate import orifice_plate
+from python.components.orificePlate import orifice_plate
 from python.components.BurstDisk import burst_disk
 
 def make_graph(list_of_objects):

@@ -9,9 +9,11 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javafx.geometry.VPos;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.input.MouseButton;
 import javafx.scene.paint.Color;
+import javafx.scene.text.TextAlignment;
 
 import static com.example.demo.GUI_FLOW.IMAGE_WIDTH;
 
@@ -27,6 +29,7 @@ public class Manager {
     private static Component held = null, selected = null;
     private static boolean dragging = false, right_held = false;
     public static boolean unhighlight_next = false, graphs = false;
+    private static HashMap<Integer, double[]> node_data_map = new HashMap<>();
     private static final Color
             BACKGROUND_COLOR = Color.WHITE,
             GRID_COLOR = Color.LIGHTGRAY,
@@ -34,7 +37,10 @@ public class Manager {
             BAR_FILL = Color.GRAY,
             DARK_HIGHLIGHT_COLOR = Color.color(0.8, 0.8, 0.8),
             LIGHT_HIGHLIGHT_COLOR = Color.color(0.92, 0.92, 0.92),
-            DARK_TRIM = Color.color(0.3, 0.3, 0.3);
+            DARK_TRIM = Color.color(0.3, 0.3, 0.3),
+            GRAPH_COLOR = Color.color(0.95, 0.95, 0.95),
+            GRAPH_TRIM = Color.color(0.7, 0.7, 0.7),
+            GRAPH_LINE = Color.color(0.4, 0.4, 0.8);
 
 
     static void init(GraphicsContext gc_in, String path) {
@@ -97,20 +103,36 @@ public class Manager {
 
     public static void load(String path) {
         path = path.replace("input", "result");
+        path = "/Users/zachary/Documents/FLOW/data/outputs/output0.txt";
         try {
             BufferedReader reader = new BufferedReader(new FileReader(path));
             String curLine = reader.readLine();
-            while (curLine != null) {
+            int comps = Integer.parseInt(curLine.split(" ")[0]), nodes = Integer.parseInt(curLine.split(" ")[1]);
+            for (int j = 0; j < comps; j++){
+                curLine = reader.readLine();
                 String[] split = curLine.split(",", 2);
                 Component cq = null;
                 for (Component comp : components)
                     if (comp.uniquename.equals(split[0]))  cq = comp;
-                if (cq == null) throw new RuntimeException("No match for " + split[0]);
+                if (cq == null) {
+                    System.out.println("No match for " + split[0]);
+                    if (1 < 2) continue;
+                    throw new RuntimeException("No match for " + split[0]);
+                }
                 split = split[1].split(",");
                 double[] values = new double[split.length];
                 for (int i = 0; i < split.length; i++) values[i] = Double.parseDouble(split[i]);
                 cq.stored_values = values;
+            }
+            node_data_map = new HashMap<>();
+            for (int j = 0; j < nodes; j++) {
                 curLine = reader.readLine();
+                String[] split = curLine.split(",", 2);
+                int node = Integer.parseInt(split[0]);
+                split = split[1].split(",");
+                double[] values = new double[split.length];
+                for (int i = 0; i < split.length; i++) values[i] = Double.parseDouble(split[i]);
+                node_data_map.put(node, values);
             }
         } catch (IOException ignored) {}
     }
@@ -148,7 +170,15 @@ public class Manager {
         for(int i = -1; i <= GUI_FLOW.cy / IMAGE_WIDTH; i++) gc.strokeLine( 0, (i + 1) * IMAGE_WIDTH + modW(offsetY), GUI_FLOW.cx, (i + 1) * IMAGE_WIDTH + modW(offsetY));
         for (Component comp : components) if (comp != held) comp.drawWith(gc, 80, false);
         for (Edge edge : Edge.edges) edge.drawWith(gc);
-        if (graphs) for (Component comp : components) comp.drawGraph(gc, 200);
+        if (graphs) for (Component comp : components) drawGraph(gc, 200, comp.stored_values, comp.tlx, comp.tly);
+        ArrayList<Integer> already_drawn = new ArrayList<>();
+        for (Edge edge : Edge.edges) {
+            int node = edge.getNode();
+            if (already_drawn.contains(node)) continue;
+            if (!node_data_map.containsKey(node)) continue;
+            already_drawn.add(node);
+            drawGraph(gc, 200, node_data_map.get(node), edge.start_x * IMAGE_WIDTH / 2.0 + offsetX, edge.start_y * IMAGE_WIDTH / 2.0 + offsetY);
+        }
     }
 
     private static void drawBar() {
@@ -372,5 +402,45 @@ public class Manager {
             //else tempy = 1;//redundant
         }
         return new int[]{curX, curY, curX + tempx, curY + tempy};
+    }
+
+    public static void drawGraph (GraphicsContext gc, int size, double[] points, double tlx, double tly) {
+        //points = new double[]{0.2, 0.8, 0.9, 1.2, 1.3, 1.8};
+        if (points == null || points.length <= 1) return;
+
+        gc.setFill(GRAPH_TRIM);
+        gc.fillRect(tlx, tly - size, size, size);
+        gc.setFill(GRAPH_COLOR);
+        gc.fillRect(tlx + TRIM, tly - size + TRIM, size - 2 * TRIM, size - 2 * TRIM);
+
+        gc.setStroke(Color.BLACK);
+        gc.setLineWidth(1);
+        final int offsetl = 30, offset = 5;
+        gc.strokeLine(tlx + TRIM + offsetl, tly - size + TRIM + offset, tlx + TRIM + offsetl, tly - TRIM - offset);
+        gc.strokeLine(tlx + TRIM + offsetl, tly - TRIM - offset, tlx + size - TRIM - offset, tly - TRIM - offset);
+
+        double min = points[0], max = points[0];
+        for (double point : points) {
+            if (point < min) min = point;
+            if (point > max) max = point;
+        }
+        gc.setStroke(GRAPH_LINE);
+        gc.setLineWidth(1);
+        double step_size = (double) (size - 2 * TRIM - offsetl - offset) / (points.length - 1);
+        for (int i = 0; i < points.length - 1; i++) {
+            double scaled1 = (points[i] - min) / (max - min),
+                    scaled2 = (points[i + 1] - min) / (max - min);
+            gc.strokeLine(
+                    tlx + TRIM + offsetl + i * step_size,
+                    tly - TRIM - offset - scaled1 * (size - 2 * TRIM - 2 * offset),
+                    tlx + TRIM + offsetl + (i + 1) * step_size,
+                    tly - TRIM - offset - scaled2 * (size - 2 * TRIM - 2 * offset)
+            );
+        }
+        gc.setTextAlign(TextAlignment.RIGHT);
+        gc.setTextBaseline(VPos.BASELINE);
+        gc.setStroke(Color.BLACK);
+        gc.strokeText(String.format("%.2f", max), tlx + TRIM + offsetl - 3, tly - size + TRIM + offset + 5);
+        gc.strokeText(String.format("%.2f", min), tlx + TRIM + offsetl - 3, tly - TRIM - offset - 5);
     }
 }

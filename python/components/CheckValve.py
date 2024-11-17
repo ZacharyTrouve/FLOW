@@ -1,15 +1,15 @@
-import Component
+from .component import Component
 import ast
 from math import sqrt
 
-class CheckValve(Component.Component):
-  def __init__(self, ID, input_node, output_node, Cv_open, Cv_closed = 0.00000001, initial_state = 0):
+class CheckValve(Component):
+  '''def __init__(self, ID, input_node, output_node, Cv_open, Cv_closed = 0.00000001, initial_state = 0):
     self.ID = ID
     self.input_node = input_node
     self.output_node = output_node
     self.Cv_open = Cv_open
     self.Cv_closed = Cv_closed
-    self.state = initial_state
+    self.state = initial_state'''
 
   def __init__(self, line):
     split = line.split(',', 3)
@@ -17,9 +17,9 @@ class CheckValve(Component.Component):
     self.input_node = split[1]
     self.output_node = split[2]
     dic = ast.literal_eval(split[3])
-    self.Cv_open = dic['Cv_open']
-    self.Cv_closed = dic['Cv_closed']
-    self.state = dic['state']
+    self.Cv_open = float(dic['Cv_open'])
+    self.Cv_closed = float(dic['Cv_closed'])
+    self.state = float(dic['state'])
 
   def pdrop(self, mass_flow_rate, fluid_density, fluid_viscocity):
     if self.state == 1:

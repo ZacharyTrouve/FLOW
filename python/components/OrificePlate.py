@@ -1,16 +1,16 @@
-import Component
+from .component import Component
 import ast
 from math import pi, sqrt
 
 
-class OrificePlate(Component.Component):
-  def __init__(self, ID, input_node, output_node, orifice_diameter, pipe_diameter, Cv):
+class OrificePlate(Component):
+  '''def __init__(self, ID, input_node, output_node, orifice_diameter, pipe_diameter, Cv):
     self.ID = ID
     self.input_node = input_node
     self.output_node = output_node
     self.orifice_diameter = orifice_diameter
     self.pipe_diameter = pipe_diameter
-    self.Cv = Cv
+    self.Cv = Cv'''
 
   def __init__(self, line):
     split = line.split(',', 3)
@@ -18,9 +18,9 @@ class OrificePlate(Component.Component):
     self.input_node = split[1]
     self.output_node = split[2]
     dic = ast.literal_eval(split[3])
-    self.orifice_diameter = dic['orifice_diameter']
-    self.pipe_diameter = dic['pipe_diameter']
-    self.Cv = dic['Cv']
+    self.orifice_diameter = float(dic['orifice_diameter'])
+    self.pipe_diameter = float(dic['pipe_diameter'])
+    self.Cv = float(dic['Cv'])
     #orifice_diameter,0,1,pipe_diameter,0,1,Cv,0,10
 
   def pdrop(self, mass_flow_rate, fluid_density, dynamic_viscosity):

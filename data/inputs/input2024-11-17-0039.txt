@@ -1,0 +1,6 @@
+pressureregulator,pressureregulator0,0,3,{'max_Cv':'0.0','minCv':'0.0','inertia':'0.0','damping':'0.0','target':'0.0','state':'0.0','speed':'0.0','time':'0.0','opening_curve':'0.0','current_Cv':'0.0'}
+gatevalve,gatevalve0,4,0,{'state':'0.0','Cv_open':'0.0','time_of_opening':'0.0','time_taken_2_open':'0.0'}
+pressurereliefvalve,pressurereliefvalve0,3,2,{'initial_state':'0.0','state':'0.0','valve_diameter':'0.0','burst_pressure':'0.0'}
+tank,tank0,-1,2,{'initial_mass':'0.0','mass':'0.0','pressure':'0.0','time':'0.0'}
+pipeEW,pipeEW0,4,3,{'pipe_length':'0.0','pipe_diameter':'0.0'}
+pipeEW,pipeEW1,0,3,{'pipe_length':'0.0','pipe_diameter':'0.0'}
