@@ -122,7 +122,8 @@ public class Manager {
                 split = split[1].split(",");
                 double[] values = new double[split.length];
                 for (int i = 0; i < split.length; i++) values[i] = Double.parseDouble(split[i]);
-                cq.stored_values = values;
+                cq.recorded_values = values;
+                System.out.println(Arrays.toString(values));
             }
             node_data_map = new HashMap<>();
             for (int j = 0; j < nodes; j++) {
@@ -170,14 +171,18 @@ public class Manager {
         for(int i = -1; i <= GUI_FLOW.cy / IMAGE_WIDTH; i++) gc.strokeLine( 0, (i + 1) * IMAGE_WIDTH + modW(offsetY), GUI_FLOW.cx, (i + 1) * IMAGE_WIDTH + modW(offsetY));
         for (Component comp : components) if (comp != held) comp.drawWith(gc, 80, false);
         for (Edge edge : Edge.edges) edge.drawWith(gc);
-        if (graphs) for (Component comp : components) drawGraph(gc, 200, comp.stored_values, comp.tlx, comp.tly);
-        ArrayList<Integer> already_drawn = new ArrayList<>();
-        for (Edge edge : Edge.edges) {
-            int node = edge.getNode();
-            if (already_drawn.contains(node)) continue;
-            if (!node_data_map.containsKey(node)) continue;
-            already_drawn.add(node);
-            drawGraph(gc, 200, node_data_map.get(node), edge.start_x * IMAGE_WIDTH / 2.0 + offsetX, edge.start_y * IMAGE_WIDTH / 2.0 + offsetY);
+        if (graphs) {
+            for (Component comp : components)
+                if (comp.inTransit) drawGraph(gc, 200, comp.recorded_values, comp.tlx, comp.tly);
+                else drawGraph(gc, 200, comp.recorded_values, (comp.gridx - 1) * IMAGE_WIDTH / 2.0 + offsetX, (comp.gridy - 1) * IMAGE_WIDTH / 2.0 + offsetY);
+            ArrayList<Integer> already_drawn = new ArrayList<>();
+            for (Edge edge : Edge.edges) {
+                int node = edge.getNode();
+                if (already_drawn.contains(node)) continue;
+                if (!node_data_map.containsKey(node)) continue;
+                already_drawn.add(node);
+                drawGraph(gc, 200, node_data_map.get(node), edge.start_x * IMAGE_WIDTH / 2.0 + offsetX, edge.start_y * IMAGE_WIDTH / 2.0 + offsetY);
+            }
         }
     }
 

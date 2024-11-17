@@ -30,7 +30,7 @@ public class Component {
     private boolean[][] drawList;
     public int gridx, gridy, tlx, tly, initx, inity, IN, OUT;
     public boolean invalid_location = false, higher_highlighted = false, highlighted = false, inTransit = true, blocked_location;
-    public double[] mins, maxes, stored_values;
+    public double[] mins, maxes, stored_values, recorded_values;
     public String[] parameters;
     public String name, uniquename;
     private static final int dark = 0, light = 180;
