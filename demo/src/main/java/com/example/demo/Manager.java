@@ -103,17 +103,30 @@ public class Manager {
             writer.flush();
             writer.close();
         } catch (IOException e) {}
-        GUI_FLOW.runWillTerminate(GUI_FLOW.pythonCommand + String.format(" %s %.8f %f %.2f %.2f\n", "txt_class_converter.py", step_size, step_number, fluid_density, fluid_viscosity));
+        //GUI_FLOW.runWillTerminate(GUI_FLOW.pythonCommand + String.format(" %s %s %.8f %f %.2f %.2f\n", "/Users/zachary/Documents/FLOW/python/txt_class_converter.py", "/Users/zachary/Documents/FLOW/data/inputs/input2024-11-17-1119.txt", step_size, step_number, fluid_density, fluid_viscosity));
         load(path);
     }
 
     public static void load(String path) {
         path = path.replace("input", "result");
-        path = "/Users/zachary/Documents/FLOW/data/outputs/output0.txt";
+        path = "/Users/zachary/Documents/FLOW/data/outputs/outputZ.txt";
         try {
             BufferedReader reader = new BufferedReader(new FileReader(path));
             String curLine = reader.readLine();
-            int comps = Integer.parseInt(curLine.split(" ")[0]), nodes = Integer.parseInt(curLine.split(" ")[1]);
+            int comps = Integer.parseInt(curLine.split(" ")[3]),
+                    nodes = Integer.parseInt(curLine.split(" ")[2]);
+            double step_count = Double.parseDouble(curLine.split(" ")[1]),
+                    step_size = Double.parseDouble(curLine.split(" ")[0]);
+            node_data_map = new HashMap<>();
+            for (int j = 0; j < nodes; j++) {
+                curLine = reader.readLine();
+                String[] split = curLine.split(",", 2);
+                int node = Integer.parseInt(split[0]);
+                split = split[1].split(",");
+                double[] values = new double[split.length];
+                for (int i = 0; i < split.length; i++) values[i] = Double.parseDouble(split[i]);
+                node_data_map.put(node, values);
+            }
             for (int j = 0; j < comps; j++){
                 curLine = reader.readLine();
                 String[] split = curLine.split(",", 2);
@@ -130,16 +143,6 @@ public class Manager {
                 for (int i = 0; i < split.length; i++) values[i] = Double.parseDouble(split[i]);
                 cq.recorded_values = values;
                 System.out.println(Arrays.toString(values));
-            }
-            node_data_map = new HashMap<>();
-            for (int j = 0; j < nodes; j++) {
-                curLine = reader.readLine();
-                String[] split = curLine.split(",", 2);
-                int node = Integer.parseInt(split[0]);
-                split = split[1].split(",");
-                double[] values = new double[split.length];
-                for (int i = 0; i < split.length; i++) values[i] = Double.parseDouble(split[i]);
-                node_data_map.put(node, values);
             }
         } catch (IOException ignored) {}
     }
@@ -178,9 +181,6 @@ public class Manager {
         for (Component comp : components) if (comp != held) comp.drawWith(gc, 80, false);
         for (Edge edge : Edge.edges) edge.drawWith(gc);
         if (graphs) {
-            for (Component comp : components)
-                if (comp.inTransit) drawGraph(gc, 200, comp.recorded_values, comp.tlx, comp.tly);
-                else if(comp.highlighted || comp.higher_highlighted) drawGraph(gc, 200, comp.recorded_values, (comp.gridx - 1) * IMAGE_WIDTH / 2.0 + offsetX, (comp.gridy - 1) * IMAGE_WIDTH / 2.0 + offsetY);
             ArrayList<Integer> already_drawn = new ArrayList<>();
             for (Edge edge : Edge.edges) {
                 int node = edge.getNode();
@@ -190,6 +190,10 @@ public class Manager {
                 already_drawn.add(node);
                 drawGraph(gc, 200, node_data_map.get(node), edge.start_x * IMAGE_WIDTH / 2.0 + offsetX, edge.start_y * IMAGE_WIDTH / 2.0 + offsetY);
             }
+
+            for (Component comp : components)
+                if (comp.inTransit) drawGraph(gc, 200, comp.recorded_values, comp.tlx, comp.tly);
+                else if(comp.highlighted || comp.higher_highlighted) drawGraph(gc, 200, comp.recorded_values, (comp.gridx - 1) * IMAGE_WIDTH / 2.0 + offsetX, (comp.gridy - 1) * IMAGE_WIDTH / 2.0 + offsetY);
         }
     }
 

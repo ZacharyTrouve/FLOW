@@ -3,7 +3,7 @@ import ast
 from math import sqrt
 
 class PressureRegulator(Component):
-  def __init__(self, ID, input_node, output_node, max_Cv, min_Cv, inertia, damping, target_pressure):
+  '''def __init__(self, ID, input_node, output_node, max_Cv, min_Cv, inertia, damping, target_pressure):
     self.ID = ID
     self.input_node = input_node
     self.output_node = output_node
@@ -16,7 +16,7 @@ class PressureRegulator(Component):
     self.speed = 0 #Goes from -1 to 1
     self.time = 0
     self.opening_curve = [0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1]
-    self.current_Cv = 0.5
+    self.current_Cv = 0.5'''
 
   def __init__(self, line):
     split = line.split(',', 3)
@@ -45,5 +45,5 @@ class PressureRegulator(Component):
 
   def update(self, current_time, pressure_drop, mass_flow_rate, upstreet_pressure):
     state = self.state + self.speed * (self.time - current_time)
-    speed = self.speed + (self.target - self.pressure)
+    speed = self.speed + (self.target - self.upstreet_pressure)
     self.time = current_time

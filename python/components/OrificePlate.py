@@ -30,3 +30,6 @@ class OrificePlate(Component):
   def mrate(self, pressure_drop, fluid_density, dynamic_viscosity):
     mass_flow_rate = sqrt((pi**2*fluid_density*self.orifice_diameter**4*pressure_drop)/(8))
     return mass_flow_rate
+
+  def update(self, current_time, pressure_drop, mass_flow_rate, upstreet_pressure):
+      pass

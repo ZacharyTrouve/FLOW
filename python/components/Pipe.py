@@ -27,3 +27,7 @@ class Pipe(Component):
   def mrate(self, pressure_drop, fluid_density, dynamic_viscosity):
     mass_flow_rate = (pi*self.pipe_diameter**4*fluid_density*pressure_drop)/(128*dynamic_viscosity*self.pipe_length)
     return mass_flow_rate
+
+
+  def update(self, current_time, pressure_drop, mass_flow_rate, upstreet_pressure):
+      pass

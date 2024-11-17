@@ -43,4 +43,3 @@ class PressureReliefValve(Component):
       self.state = 1 # valve open, flow goes through
     else:
       self.state = 0 # no flow
-

@@ -1,14 +1,15 @@
 class Component:
-  def __init__(self, ID, input_node, output_node):
-    self.ID = ID
-    self.input_node = input_node
-    self.output_node = output_node
+  def __init__(self, line):
+    split = line.split(',', 3)
+    self.ID = split[0]
+    self.input_node = split[1]
+    self.output_node = split[2]
 
   def pressure_drop(self, Q):
-    raise NotImplementedError("No pressure drop function")
+    pass
 
   def mass_flow_rate(self, pdrop):
-    raise NotImplementedError("No mass flow function")
+    pass
 
-  def update(self, current_time):
-    return None
+  def update(self, current_time, pressure_drop, mass_flow_rate, upstreet_pressure):
+    pass

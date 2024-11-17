@@ -1,6 +1,7 @@
 from .component import Component
 import ast
 from math import sqrt
+import numpy as np
 
 class CheckValve(Component):
   '''def __init__(self, ID, input_node, output_node, Cv_open, Cv_closed = 0.00000001, initial_state = 0):
@@ -29,13 +30,16 @@ class CheckValve(Component):
 
   def mrate(self, pressure_drop, fluid_density, fluid_viscocity):
     if self.state == 1:
-      return 2.73495 * sqrt(fluid_density * pressure_drop) * self.Cv_open
+      return 2.73495 * sqrt(np.abs(fluid_density * pressure_drop)) * self.Cv_open
     else:
-      return 2.73495 * sqrt(fluid_density * pressure_drop) * self.Cv_closed
+      return 2.73495 * sqrt(np.abs(fluid_density * pressure_drop)) * self.Cv_closed
 
   def update(self, current_time, pressure_drop, mass_flow_rate, upstreet_pressure):
     ## valve flows only one way if pressure allows, otherwise doesn't flow at all
+    print(pressure_drop)
     if pressure_drop > 0:
       self.state = 1
     else:
       self.state = 0
+
+    print("check valve state", self.state)
