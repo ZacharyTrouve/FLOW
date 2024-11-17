@@ -10,6 +10,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 
 import static com.example.demo.GUI_FLOW.IMAGE_WIDTH;
@@ -32,9 +33,10 @@ public class Component {
     public boolean invalid_location = false, higher_highlighted = false, highlighted = false, inTransit = true, blocked_location;
     public double[] mins, maxes, stored_values, recorded_values;
     public String[] parameters;
-    public String name, uniquename;
+    public String name, compname, uniquename;
     private static final int dark = 0, light = 180;
-    public Component(String name, int initx, int inity, int IN, int OUT, String[] parameters, double[] mins, double[] maxes) {
+    public Component(String compname, String name, int initx, int inity, int IN, int OUT, String[] parameters, double[] mins, double[] maxes) {
+        this.compname = compname;
         this.name = name;
         this.tlx = initx;
         this.tly = inity;
@@ -49,6 +51,7 @@ public class Component {
     }
 
     public Component(Component template) {
+        this.compname = template.compname;
         this.name = template.name;
         this.tlx = template.tlx;
         this.tly = template.tly;
@@ -93,6 +96,17 @@ public class Component {
                 map.getOrDefault((gridx - 1) + "." + gridy, -1)
         };
 
+        if (this.compname.equals("pit")) {
+            this.uniquename = "pit";
+            int net1 = -1, net2 = -1;
+            if (this.IN != -1) net1 = nets[this.IN];
+            if (this.OUT != -1) net2 = nets[this.OUT];
+            if (net1 == -1) net1 = net2;
+            //System.out.println(Arrays.toString(nets));
+            if (net1 == -1) throw new Error();
+            return String.format("SINK," + net1);
+        }
+
         int in_id = -1, out_id = -1;
         if (this.IN != -1) {
             in_id = nets[this.IN];
@@ -102,13 +116,13 @@ public class Component {
             out_id = nets[this.OUT];
             if (out_id == -1) throw new RuntimeException(this.name + " at (" + this.gridx + ", " + this.gridy + ") is not connected to a complete number of nets!");
         }
+        String[] spl = this.compname.split("\\.");
+        this.uniquename = spl[0] + id;
 
-        this.uniquename = this.name + id;
-        this.uniquename = this.uniquename.replaceAll("EW|NS", "");
-
-        StringBuilder str = new StringBuilder(this.name + "," + this.uniquename + "," + in_id + "," + out_id + ",{");
+        StringBuilder str = new StringBuilder(spl[0] + "," + this.uniquename + "," + in_id + "," + out_id + ",{");
         for (int i = 0; i < this.stored_values.length; i++) str.append("'").append(this.parameters[i]).append("':'").append(this.stored_values[i]).append("',");
-        str.append("}");
+        if (spl.length > 1) str.append(String.format("'type':'%s'}", spl[1]));
+        else str.append("}");
         return str.toString().replaceAll(",}", "}");
     }
 

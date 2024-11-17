@@ -10,10 +10,16 @@ import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javafx.geometry.VPos;
+import javafx.scene.Scene;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.input.MouseButton;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.TextAlignment;
+import javafx.stage.Stage;
 
 import static com.example.demo.GUI_FLOW.IMAGE_WIDTH;
 
@@ -57,18 +63,18 @@ public class Manager {
                 //System.out.println(Arrays.toString(split));
                 String[] param = new String[(split.length - 3) / 3];
                 double[] mins = new double[(split.length - 3) / 3], maxes = new double[(split.length - 3) / 3];
-                for (int q = 3; q < split.length; q += 3) {
+                for (int q = 4; q < split.length; q += 3) {
                     param[q/3 - 1] = split[q];
                     if (split[q + 1].equals("?")) split[q + 1] = "-1";
                     if (split[q + 2].equals("?")) split[q + 2] = "-1";
                     mins[q/3 - 1] = Double.parseDouble(split[q + 1]);
                     maxes[q/3 - 1] = Double.parseDouble(split[q + 2]);
                 }
-                Component temp = new Component(
+                Component temp = new Component(split[1],
                         split[0],offsetx + 80 * (i.get() % COMP_RANGE),
                         GUI_FLOW.cy + offsety + 80 * (i.get() / COMP_RANGE),
-                        Integer.parseInt(split[1]),
                         Integer.parseInt(split[2]),
+                        Integer.parseInt(split[3]),
                         param, mins, maxes);
                 templates.add(temp);
                 i.getAndIncrement();
@@ -297,9 +303,13 @@ public class Manager {
 
         if (e.getX() < GUI_FLOW.cx && e.getY() < GUI_FLOW.cy) {
             if (selected != null) selected.higher_highlighted = false;
+
             Component old = selected;
             selected = getComponentAtMouse(e);
-            if (selected != null && selected != old) selected.higher_highlighted = true;
+            if (selected != null && selected != old) {
+                selected.higher_highlighted = true;
+                open_edit_window();
+            }
         }
         if (!isCenter(e)) {
             if (e.getButton() == MouseButton.SECONDARY) {
@@ -447,5 +457,53 @@ public class Manager {
         gc.setStroke(Color.BLACK);
         gc.strokeText(String.format("%.2f", max), tlx + TRIM + offsetl - 3, tly - size + TRIM + offset + 5);
         gc.strokeText(String.format("%.2f", min), tlx + TRIM + offsetl - 3, tly - TRIM - offset - 5);
+    }
+
+    private static void open_edit_window() {
+        if (selected == null) return;
+        final Component q = selected;
+        Stage temp = new Stage();
+        temp.setResizable(false);
+        BorderPane temper = new BorderPane();
+        Scene TEMP = new Scene(temper);
+        temp.setScene(TEMP);
+        VBox box = new VBox();
+        temper.setCenter(box);
+        TextField[] inputs = new TextField[q.parameters.length];
+        for (int i = 0; i < q.parameters.length; i++) {
+            Label tempiest = new Label(q.parameters[i]);
+            //tempiest.setStyle("-fx-text-fill: red");
+            tempiest.setFocusTraversable(false);
+            inputs[i] = new TextField("" + q.stored_values[i]);
+            inputs[i].setEditable(true);
+            box.getChildren().add(tempiest);
+            box.getChildren().add(inputs[i]);
+            final int index = i;
+            inputs[i].setOnMouseExited(e -> {
+                double val;
+                try {
+                   val = Double.parseDouble(inputs[index].getText());
+                   if (val < q.mins[index] || val > q.maxes[index])
+                       throw new NumberFormatException(String.format(q.parameters[index] + " must be in range %.2f to %.2f!", q.mins[index], q.maxes[index]));
+                } catch (NumberFormatException f) {
+                    Stage error = new Stage();
+                    temp.setResizable(false);
+                    BorderPane holder = new BorderPane();
+                    Scene scenic = new Scene(holder);
+                    error.setScene(scenic);
+                    holder.setCenter(new Label(f.getMessage()));
+                    error.show();
+                }
+            });
+        }
+        //Label tempiest = new Label(tbc.toString());
+        //tempiest.setFocusTraversable(false);
+
+        //temper.setCenter(tempiest);
+        temp.show();
+        temp.setOnCloseRequest(e -> {
+            for (int i = 0; i < inputs.length; i++)
+                q.stored_values[i] = Double.parseDouble("0" + inputs[i].getText());
+        });
     }
 }

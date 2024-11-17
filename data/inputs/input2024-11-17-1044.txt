@@ -1,0 +1,5 @@
+tank,tank0,-1,0,{'initial_mass':'1000.0','mass':'1000.0','pressure':'100.0','time':'0.0'}
+valve,valve0,0,1,{'state':'0.0','Cv_open':'12.0','time_of_opening':'0.0','time_taken_2_open':'0.0','type':'gate'}
+SINK,1
+pipe,pipe0,1,2,{'pipe_length':'2.0','pipe_diameter':'0.3'}
+orificeplate,orificeplate0,2,0,{'orifice_diameter':'0.01','pipe_diameter':'0.9','Cv':'3.2'}

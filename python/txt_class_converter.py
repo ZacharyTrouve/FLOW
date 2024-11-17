@@ -34,6 +34,10 @@ if __name__ == "__main__":
     comps = []
     with open(filename, 'r') as file:
         for line in file:
+            sp = line.split(',', 1)
+            if sp[0] == "pit":
+                pit_id = int(sp[1])
+                continue
             comps.append(comp_from_line(line))
     for item in comps: print (type(item))
     '''time_step_size = sys.argv[2]
@@ -45,5 +49,5 @@ if __name__ == "__main__":
     fluid_density = 1
     dynamic_viscosity = 1
     G = Solver.make_graph(comps)
-    Solver.time_solver(G, time_step_size, time_step_number, fluid_density, dynamic_viscosity)
+    Solver.time_solver(G, time_step_size, time_step_number, fluid_density, dynamic_viscosity, pit_id)
 
