@@ -52,24 +52,8 @@ public class GUI_FLOW extends Application {
         stage.setResizable(false);
         stage.show();
 
-        /*runWillTerminate(pythonCommand + " txt_class_converter.py\n");
-        String[] e = new String[0];
-        double[] m = new double[0], n = new double[0];
-        Manager.components.add(new Component("origin", 30, 30, 1, 2, e, m , n));
-        Manager.components.add(new Component("pit", 200, 30, 1, 2, e, m , n));
-        Manager.components.add(new Component("pipeNS", 300, 80, 1, 2, e, m , n));
-        Manager.components.add(new Component("pipeEW", 400, 180, 1, 2, e, m , n));
-        Manager.components.add(new Component("gatevalve", 500, 400, 1, 2, e, m , n));
-        Manager.components.add(new Component("pressurereliefvalve", 700, 200, 1, 2, e, m , n));
-        Manager.components.add(new Component("ballvalve", 700, 400, 1, 2, e, m , n));
-        for (Component comp : Manager.components) comp.place();
-        */
-
-        Manager.buttons.add(new Button("Save", cx / 2 + (tx - 160) / 2, ty - 100, 160, 30) {
-            public void run_action(){
-                Manager.save();
-            }
-        });
+        //runWillTerminate(pythonCommand + " txt_class_converter.py\n");
+        Manager.buttons.add(new Button("Save", cx / 2 + (tx - 160) / 2, ty - 100, 160, 30) {public void run_action(){Manager.save();}});
     }
     public void warning(String input){
         Stage temp = new Stage();

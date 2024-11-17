@@ -4,6 +4,7 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import static com.example.demo.GUI_FLOW.IMAGE_WIDTH;
 
@@ -133,5 +134,12 @@ public class Edge {
         for (Edge edge : edges) if (edge.start_x == x1 && edge.start_y == y1 && edge.end_x == x2 && edge.end_y == y2 ||
                 edge.start_x == x2 && edge.start_y == y2 && edge.end_x == x1 && edge.end_y == y1) return edge;//in either direction
         return null;
+    }
+
+    public static void fill (HashMap<String, Integer> tbf) {
+        for (Edge edge : edges) {
+            tbf.put(edge.start_x + "." + edge.start_y, edge.getNode());
+            tbf.put(edge.end_x + "." + edge.end_y, edge.getNode());
+        }
     }
 }

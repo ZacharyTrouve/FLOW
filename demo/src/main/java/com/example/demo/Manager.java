@@ -1,8 +1,9 @@
 package com.example.demo;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -25,9 +26,6 @@ public class Manager {
     private static Component held = null, selected = null;
     private static boolean dragging = false, right_held = false;
     public static boolean unhighlight_next = false;
-
-    private static HashMap<String, Integer> node_map;//TODO:converts "x.y" to netID
-
     private static final Color
             BACKGROUND_COLOR = Color.WHITE,
             GRID_COLOR = Color.LIGHTGRAY,
@@ -49,7 +47,7 @@ public class Manager {
             AtomicInteger i = new AtomicInteger();
             reader.lines().forEach(str -> {
                 String[] split = str.split(",");
-                System.out.println(Arrays.toString(split));
+                //System.out.println(Arrays.toString(split));
                 String[] param = new String[(split.length - 3) / 3];
                 double[] mins = new double[(split.length - 3) / 3], maxes = new double[(split.length - 3) / 3];
                 for (int q = 3; q < split.length; q += 3) {
@@ -71,7 +69,25 @@ public class Manager {
     }
 
     public static void save () {
-
+        HashMap<String, Integer> coord_to_id = new HashMap<>();
+        Edge.fill(coord_to_id);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HHmm");
+        final String path = GUI_FLOW.join(GUI_FLOW.basedir, "data", "inputs", "input" + LocalDateTime.now().format(formatter) + ".txt");
+        try {
+            int[] ids = new int[templates.size()];
+            System.out.println(path);
+            PrintWriter writer = new PrintWriter(new FileWriter(path));
+            for (Component comp : components) {
+                int id = -1;
+                for (int i = 0; i < templates.size(); i++)
+                    if (templates.get(i).name.equals(comp.name))
+                        id = ids[i]++;
+                if (id == -1) throw new RuntimeException(comp.name);
+                writer.write(comp.to_be_processed(coord_to_id, id) + "\n");
+            }
+            writer.flush();
+            writer.close();
+        } catch (IOException e) {}
     }
 
     private static void draw() {
